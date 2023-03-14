@@ -88,7 +88,7 @@ local go_to_breakpoint = function(go_to_next)
 	if current_bufnr ~= choosed_buffer then
 		api.nvim_set_current_buf(choosed_buffer)
 	end
-	api.nvim_win_set_cursor(0, {line, 0})
+	api.nvim_win_set_cursor(0, { line, 0 })
 end
 
 M.next = function()
@@ -97,6 +97,26 @@ end
 
 M.prev = function()
 	go_to_breakpoint(false)
+end
+
+function M.stopped()
+	local bufs_with_signs = vim.fn.sign_getplaced()
+	local current_bufnr = api.nvim_get_current_buf()
+
+	for _, buf_signs in ipairs(bufs_with_signs) do
+		buf_signs = vim.fn.sign_getplaced(buf_signs.bufnr, { name = 'DapStopped', group = '*' })[1]
+		if #buf_signs.signs > 0 then
+			for _, sign in ipairs(buf_signs.signs) do
+				if sign.name == 'DapStopped' then
+					if current_bufnr ~= buf_signs.bufnr then
+						api.nvim_set_current_buf(buf_signs.bufnr)
+					end
+					api.nvim_win_set_cursor(0, { sign.lnum, 0 })
+					break
+				end
+			end
+		end
+	end
 end
 
 return M
