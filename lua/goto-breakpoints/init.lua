@@ -3,18 +3,21 @@ local api = vim.api
 
 local tablelength = function(T)
 	local count = 0
-	for _ in pairs(T) do count = count + 1 end
+	for _ in pairs(T) do
+		count = count + 1
+	end
 	return count
 end
 
 local tail = function(T)
 	local last = -1
-	for index, _ in pairs(T) do last = index end
+	for index, _ in pairs(T) do
+		last = index
+	end
 	return last
 end
 
-
-local dap_breakpoints = require('dap.breakpoints')
+local dap_breakpoints = require("dap.breakpoints")
 local go_to_breakpoint = function(go_to_next)
 	local breakpoints = dap_breakpoints.get()
 	local amount_of_breakpoints = tablelength(breakpoints)
@@ -44,7 +47,18 @@ local go_to_breakpoint = function(go_to_next)
 
 	local current_line = api.nvim_win_get_cursor(0)[1]
 	local line = -1
-	for _, breakpoint in ipairs(breakpoints[choosed_buffer]) do
+
+	local start = 1
+	local stop = #breakpoints[choosed_buffer]
+	local step = 1
+	if not go_to_next then
+		-- Iterate in reverse
+		start = stop
+		stop = 1
+		step = -1
+	end
+	for i = start, stop, step do
+		local breakpoint = breakpoints[choosed_buffer][i]
 		if (go_to_next and breakpoint.line > current_line) or (not go_to_next and breakpoint.line < current_line) then
 			line = breakpoint.line
 			break
@@ -104,10 +118,10 @@ function M.stopped()
 	local current_bufnr = api.nvim_get_current_buf()
 
 	for _, buf_signs in ipairs(bufs_with_signs) do
-		buf_signs = vim.fn.sign_getplaced(buf_signs.bufnr, { name = 'DapStopped', group = '*' })[1]
+		buf_signs = vim.fn.sign_getplaced(buf_signs.bufnr, { name = "DapStopped", group = "*" })[1]
 		if #buf_signs.signs > 0 then
 			for _, sign in ipairs(buf_signs.signs) do
-				if sign.name == 'DapStopped' then
+				if sign.name == "DapStopped" then
 					if current_bufnr ~= buf_signs.bufnr then
 						api.nvim_set_current_buf(buf_signs.bufnr)
 					end
